@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizador de Cristales para Autos</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            font-weight: 500;
+        }
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+            color: #3498db;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result-section {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f5f7fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        .price-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            font-size: 18px;
+        }
+        .price-card .payment-method {
+            font-weight: 500;
+        }
+        .price-card .price {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .price-card.highlight {
+            border-left: 4px solid #27ae60;
+            background-color: #f1fffa;
+        }
+        .config-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+        }
+        .input-group input {
+            flex-grow: 1;
+            margin-right: 5px;
+        }
+        .input-group span {
+            font-weight: 500;
+        }
+        .saved-notice {
+            color: #27ae60;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .saved-notice.show {
+            opacity: 1;
+        }
+        .glass-type-info {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cotizador de Cristales para Autos</h1>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('cotizacion')">Cotización</div>
+            <div class="tab" onclick="switchTab('configuracion')">Configuración</div>
+        </div>
+
+        <div id="cotizacion" class="tab-content active">
+            <div class="form-group">
+                <label for="tipoVidrio">Tipo de Cristal:</label>
+                <select id="tipoVidrio" onchange="updateFormInfo()">
+                    <option value="">Selecciona un tipo de cristal</option>
+                    <option value="parabrisas">Parabrisas</option>
+                    <option value="luneta">Luneta</option>
+                    <option value="vidrio-lateral">Vidrio Lateral</option>
+                    <option value="custodio">Custodio</option>
+                    <option value="aleta">Aleta</option>
+                </select>
+                <div id="glassTypeInfo" class="glass-type-info"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="tipoVehiculo">Tipo de Vehículo:</label>
+                <select id="tipoVehiculo">
+                    <option value="">Auto</option>
+                    <option value="camioneta">Camioneta</option>
+                    <option value="camion">Camion</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="precioCosto">Precio de Costo ($):</label>
+                <input type="number" id="precioCosto" placeholder="Ingrese el precio de costo" min="0" step="0.01">
+            </div>
+
+            <button onclick="calcularCotizacion()">Calcular Precios</button>
+
+            <div id="resultados" class="result-section" style="display: none;">
+                <h3>Resultados de la Cotización:</h3>
+                <div class="price-card highlight">
+                    <span class="payment-method">Efectivo / Transferencia:</span>
+                    <span class="price" id="precioEfectivo">$0.00</span>
+                </div>
+                <div class="price-card">
+                    <span class="payment-method">Débito:</span>
+                    <span class="price" id="precioDebito">$0.00</span>
+                </div>
+                <div class="price-card">
+                    <span class="payment-method">Tarjeta de Crédito:</span>
+                    <span class="price" id="precioCredito">$0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="configuracion" class="tab-content">
+            <h3>Configuración de Porcentajes</h3>
+            <p>Ajusta los porcentajes para los diferentes cálculos de la cotización.</p>
+            <div class="config-form">
+                
+                <div class="form-group">
+                    <label for="porcentajeGanancia">Porcentaje de Ganancia:</label>
+                    <div class="input-group">
+                        <input type="number" id="porcentajeGanancia" min="0" max="100" step="0.1">
+                        <span>%</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="porcentajeFlete">Porcentaje de Flete:</label>
+                    <div class="input-group">
+                        <input type="number" id="porcentajeFlete" min="0" max="100" step="0.1">
+                        <span>%</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="porcentajeRecargo">Recargo por Tarjeta:</label>
+                    <div class="input-group">
+                        <input type="number" id="porcentajeRecargo" min="0" max="100" step="0.1">
+                        <span>%</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="porcentajeDebito">Descuento Débito/Transferencia:</label>
+                    <div class="input-group">
+                        <input type="number" id="porcentajeDebito" min="0" max="100" step="0.1">
+                        <span>%</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="porcentajeDescuento">Descuento Efectivo/Transferencia:</label>
+                    <div class="input-group">
+                        <input type="number" id="porcentajeDescuento" min="0" max="100" step="0.1">
+                        <span>%</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="proveedorCristal">Proveedor del Cristal:</label>
+                    <select id="proveedorCristal">
+                        <option value="">Selecciona un proveedor</option>
+                        <option value="pilkington">Pilkington</option>
+                        <option value="sekurit">Sekurit</option>
+                        <option value="templado-centro">Templado Centro</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="guardarConfiguracion()">Guardar Configuración</button>
+            <div id="savedNotice" class="saved-notice">Configuración guardada correctamente</div>
+        </div>
+    </div>
+
+    <script>
+        const defaultConfig = {
+        porcentajeGanancia: 35,
+        porcentajeFlete: 10,
+        porcentajeRecargo: 15,
+        porcentajeDescuento: 20,    // Descuento para efectivo (20%)
+        porcentajeDebito: 15,       // Nuevo campo para descuento de débito (15%)
+        proveedor: ""
+    };
+    
+        const glassTypeInfo = {
+            'parabrisas': 'Incluye colocación completa con sellos y limpieza.',
+            'luneta': 'Incluye desmontaje, colocación y sellado completo.',
+            'vidrio-lateral': 'Incluye desmontaje y colocacion',
+            'custodio': 'Incluye colocación',
+            'aleta': 'Incluye colocacion'
+        };
+    
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarConfiguracion();
+            mostrarProveedorActivo();
+        });
+    
+        function updateFormInfo() {
+            const tipoSeleccionado = document.getElementById('tipoVidrio').value;
+            const infoElement = document.getElementById('glassTypeInfo');
+    
+            if (tipoSeleccionado && glassTypeInfo[tipoSeleccionado]) {
+                infoElement.textContent = glassTypeInfo[tipoSeleccionado];
+                infoElement.style.display = 'block';
+            } else {
+                infoElement.style.display = 'none';
+            }
+        }
+    
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelector(`.tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+    
+            if (tabId === 'cotizacion') {
+                mostrarProveedorActivo();
+            }
+        }
+    
+       // Actualizar la función cargarConfiguracion para incluir el nuevo campo
+    function cargarConfiguracion() {
+        const config = JSON.parse(localStorage.getItem('cristalesConfig')) || defaultConfig;
+        document.getElementById('porcentajeGanancia').value = config.porcentajeGanancia;
+        document.getElementById('porcentajeFlete').value = config.porcentajeFlete;
+        document.getElementById('porcentajeRecargo').value = config.porcentajeRecargo;
+        document.getElementById('porcentajeDescuento').value = config.porcentajeDescuento;
+        document.getElementById('porcentajeDebito').value = config.porcentajeDebito || defaultConfig.porcentajeDebito; // Añadimos el valor por defecto
+        document.getElementById('proveedorCristal').value = config.proveedor || "";
+    }
+    
+        function guardarConfiguracion() {
+        const config = {
+            porcentajeGanancia: parseFloat(document.getElementById('porcentajeGanancia').value) || defaultConfig.porcentajeGanancia,
+            porcentajeFlete: parseFloat(document.getElementById('porcentajeFlete').value) || defaultConfig.porcentajeFlete,
+            porcentajeRecargo: parseFloat(document.getElementById('porcentajeRecargo').value) || defaultConfig.porcentajeRecargo,
+            porcentajeDescuento: parseFloat(document.getElementById('porcentajeDescuento').value) || defaultConfig.porcentajeDescuento,
+            porcentajeDebito: parseFloat(document.getElementById('porcentajeDebito').value) || defaultConfig.porcentajeDebito, // Guardamos el nuevo valor
+            proveedor: document.getElementById('proveedorCristal').value
+        };
+        localStorage.setItem('cristalesConfig', JSON.stringify(config));
+        const notice = document.getElementById('savedNotice');
+        notice.classList.add('show');
+        setTimeout(() => notice.classList.remove('show'), 3000);
+        mostrarProveedorActivo();
+    }
+    
+        function mostrarProveedorActivo() {
+            const proveedor = JSON.parse(localStorage.getItem('cristalesConfig'))?.proveedor || "";
+            let mensaje = proveedor ? `Actualmente estás cotizando con: <strong>${proveedor.toUpperCase()}</strong>` : 'No hay proveedor seleccionado';
+            let proveedorAviso = document.getElementById('proveedorAviso');
+    
+            if (!proveedorAviso) {
+                proveedorAviso = document.createElement('div');
+                proveedorAviso.id = 'proveedorAviso';
+                proveedorAviso.style.marginTop = '10px';
+                proveedorAviso.style.fontWeight = 'bold';
+                proveedorAviso.style.color = '#006400';
+                document.getElementById('cotizacion').insertBefore(proveedorAviso, document.getElementById('tipoVidrio').parentNode.nextSibling);
+            }
+    
+            proveedorAviso.innerHTML = mensaje;
+        }
+    
+        function calcularCotizacion() {
+    const tipoVidrio = document.getElementById('tipoVidrio').value;
+    const tipoVehiculo = document.getElementById('tipoVehiculo').value;
+    let precioCosto = parseFloat(document.getElementById('precioCosto').value);
+    const config = JSON.parse(localStorage.getItem('cristalesConfig')) || defaultConfig;
+    const proveedor = config.proveedor;
+
+    if (!tipoVidrio || isNaN(precioCosto) || precioCosto <= 0) {
+        alert('Por favor, selecciona tipo de cristal y un precio válido.');
+        return;
+    }
+
+    // 1. Aplicar descuento por proveedor
+    if (proveedor === 'pilkington') {
+        // Descuento del 45% y luego suma el 21% de IVA
+        precioCosto *= 0.55; // 100% - 45% = 55%
+        precioCosto *= 1.21; // Suma 21% de IVA
+    } else if (proveedor === 'sekurit') {
+        // Descuento del 47%, luego 13%, luego suma 21% de IVA, luego descuento del 15%
+        precioCosto *= (1 - 0.47);
+        precioCosto *= (1 - 0.13);
+        precioCosto *= 1.21;
+        precioCosto *= (1 - 0.15);
+    } else if (proveedor === 'templado-centro') {
+        // Descuento del 55% y luego suma el 21% de IVA
+        precioCosto *= 0.45; // 100% - 55% = 45%
+        precioCosto *= 1.21; // Suma 21% de IVA
+    }
+
+    // 2. Aplicar porcentaje de ganancia y flete
+    let precioConGanancia = precioCosto * (1 + config.porcentajeGanancia / 100);
+    let precioConFlete = precioConGanancia * (1 + config.porcentajeFlete / 100);
+
+    // 3. Sumar costo de colocación según tipo de vidrio y vehículo
+    let precioColocacion = 0;
+    if (tipoVidrio === 'parabrisas' || tipoVidrio === 'luneta') {
+        precioColocacion = 30000;
+    } else if (tipoVidrio === 'vidrio-lateral' || tipoVidrio === 'custodio' || tipoVidrio === 'aleta') {
+        precioColocacion = 10000;
+    }
+
+    // Ajuste por tipo de vehículo
+    if (tipoVehiculo === 'camioneta') {
+        precioColocacion += 10000; // Para camionetas: +10000 pesos
+    } else if (tipoVehiculo === 'camion') {
+        precioColocacion += 140000; // Para camiones: +140000 pesos
+    }
+
+    // Sumar colocación al precio
+    let precioBase = precioConFlete + precioColocacion;
+
+    // 4. Precio con tarjeta de crédito (precio final base)
+    let precioCredito = precioBase * (1 + config.porcentajeRecargo / 100);
+    
+    // 5. Calcular precios con descuentos para débito y efectivo a partir del precio de tarjeta
+    let precioDebito = precioCredito * (1 - config.porcentajeDebito / 100); // Usar el porcentaje configurable
+    let precioEfectivo = precioCredito * (1 - config.porcentajeDescuento / 100);
+
+    // Redondear precios
+    precioCredito = redondear(precioCredito);
+    precioDebito = redondear(precioDebito);
+    precioEfectivo = redondear(precioEfectivo);
+
+    document.getElementById('precioCredito').textContent = formatCurrency(precioCredito);
+    document.getElementById('precioDebito').textContent = formatCurrency(precioDebito);
+    document.getElementById('precioEfectivo').textContent = formatCurrency(precioEfectivo);
+    document.getElementById('resultados').style.display = 'block';
+}
+    
+    
+        function redondear(valor) {
+            return Math.round(valor / 1000) * 1000;
+        }
+    
+        function formatCurrency(value) {
+            return '$' + value.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+    </script>
+    
+</body>
+</html>
